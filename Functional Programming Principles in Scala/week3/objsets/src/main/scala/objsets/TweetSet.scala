@@ -107,7 +107,7 @@ abstract class TweetSet {
 }
 
 class Empty extends TweetSet {
-    def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = new Empty();
+    def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =acc;
 
   def union(that: TweetSet): TweetSet =that;
   def mostRetweeted: Tweet =throw new java.util.NoSuchElementException();  //throw Exception for empty
@@ -128,7 +128,7 @@ class Empty extends TweetSet {
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
-    def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =  if( p(elem)) left.filterAcc(p, acc.incl(elem)).union(right.filterAcc(p,new Empty())) else left.filterAcc(p, acc.incl(elem)).union(new Empty)
+    def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet =  if( p(elem)) left.filterAcc(p,right.filterAcc(p, acc.incl(elem))) else left.filterAcc(p, right.filterAcc(p,acc))
 
     def union(that: TweetSet):TweetSet={
        val t=that.incl(this.elem)
@@ -147,7 +147,7 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
         case x:NonEmpty => right.mostRetweeted;
         case x:Empty => new Tweet("temp", "temp",0);
       }
-      if(elem.retweets >= leftMostRetweet.retweets && elem >=rightMostRetweet.retweets )
+      if(elem.retweets >= leftMostRetweet.retweets && elem.retweets >=rightMostRetweet.retweets )
         return elem;
       else if(leftMostRetweet.retweets >= elem.retweets && leftMostRetweet.retweets>= rightMostRetweet.retweets)
         return leftMostRetweet;
@@ -211,8 +211,8 @@ object GoogleVsApple {
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
 
-    lazy val googleTweets: TweetSet = allTweets.filter(tweet => google.exists(str=>tweet.text contains(str)))
-  lazy val appleTweets: TweetSet = allTweets.filter(tweet => apple.exists(str=>tweet.text.contains(str)))
+    lazy val googleTweets: TweetSet = TweetReader.allTweets.filter(tweet => google.exists(str=>tweet.text.contains(str)))
+  lazy val appleTweets: TweetSet = TweetReader.allTweets.filter(tweet => apple.exists(str=>tweet.text.contains(str)))
 
   
   /**
@@ -223,6 +223,8 @@ object GoogleVsApple {
 }
 
 object Main extends App {
+  //test code
+  assert( GoogleVsApple.appleTweets.isInstanceOf[NonEmpty]);
   // Print the trending tweets
   GoogleVsApple.trending foreach println
 }
